@@ -12,7 +12,8 @@ const [formData, setFormData] = useState({
     company_c: "",
     tags_c: "",
     notes_c: "",
-    photo_url_c: ""
+    photo_url_c: "",
+    science_marks_c: ""
   });
   
   const [errors, setErrors] = useState({});
@@ -27,7 +28,8 @@ setFormData({
         company_c: contact.company_c || "",
         tags_c: contact.tags_c || "",
         notes_c: contact.notes_c || "",
-        photo_url_c: contact.photo_url_c || ""
+        photo_url_c: contact.photo_url_c || "",
+        science_marks_c: contact.science_marks_c || ""
       });
     }
   }, [contact]);
@@ -158,7 +160,17 @@ label="Photo URL"
           type="url"
           value={formData.photo_url_c}
           onChange={handleChange}
-          placeholder="Enter photo URL (optional)"
+placeholder="Enter photo URL (optional)"
+          className="md:col-span-2"
+        />
+
+        <Input
+          label="Science Marks"
+          type="number"
+          name="science_marks_c"
+          value={formData.science_marks_c}
+          onChange={handleChange}
+          placeholder="Enter science marks (optional)"
           className="md:col-span-2"
         />
       </div>
