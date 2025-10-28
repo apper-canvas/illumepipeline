@@ -89,10 +89,9 @@ const validateForm = () => {
 
     setIsSubmitting(true);
 
-    try {
+try {
       const contactData = {
-...formData,
-        tags_c: formData.tags_c
+        ...formData
       };
 
       await onSave(contactData);
