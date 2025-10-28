@@ -13,7 +13,7 @@ const Callback = lazy(() => import("@/pages/Callback"));
 const ErrorPage = lazy(() => import("@/pages/ErrorPage"));
 const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
 const PromptPassword = lazy(() => import("@/pages/PromptPassword"));
-
+const Activities = lazy(() => import("@/components/pages/Activities"));
 // Loading fallback component
 const LoadingFallback = () => (
   <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -74,6 +74,10 @@ const mainRoutes = [
   createRoute({
     path: "pipeline",
     element: <Pipeline />,
+}),
+  createRoute({
+    path: "activities",
+    element: <Activities />,
   }),
   createRoute({
     path: "*",

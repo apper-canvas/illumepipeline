@@ -10,8 +10,9 @@ const Header = ({ onSearch, searchValue, onAddContact, onAddDeal, onToggleFilter
   const location = useLocation();
   const { logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const isContactsPage = location.pathname === "/" || location.pathname === "/contacts";
+const isContactsPage = location.pathname === "/" || location.pathname === "/contacts";
   const isPipelinePage = location.pathname === "/pipeline";
+  const isActivitiesPage = location.pathname === "/activities";
 
   const navItems = [
     {
@@ -19,6 +20,12 @@ const Header = ({ onSearch, searchValue, onAddContact, onAddDeal, onToggleFilter
       path: "/contacts",
       icon: "Users",
       active: isContactsPage
+    },
+    {
+      name: "Activities",
+      path: "/activities",
+      icon: "Calendar",
+      active: isActivitiesPage
     },
     {
       name: "Pipeline",
