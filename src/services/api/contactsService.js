@@ -111,33 +111,37 @@ const payload = {
         
         const localContact = successful[0].data;
 
-        // Sync contact to CompanyHub via Edge Function
-        try {
-          const { ApperClient } = window.ApperSDK;
-          const apperClientForEdge = new ApperClient({
-            apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
-            apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
-          });
+        // Sync contact to CompanyHub via Edge Function only if science marks > 60
+        if (contactData.science_marks_c && Number(contactData.science_marks_c) > 60) {
+          try {
+            const { ApperClient } = window.ApperSDK;
+            const apperClientForEdge = new ApperClient({
+              apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+              apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
+            });
 
-          const syncResult = await apperClientForEdge.functions.invoke(
-            import.meta.env.VITE_CREATE_COMPANYHUB_CONTACT,
-            {
-              body: JSON.stringify(contactData),
-              headers: {
-                'Content-Type': 'application/json'
+            const syncResult = await apperClientForEdge.functions.invoke(
+              import.meta.env.VITE_CREATE_COMPANYHUB_CONTACT,
+              {
+                body: JSON.stringify(contactData),
+                headers: {
+                  'Content-Type': 'application/json'
+                }
               }
-            }
-          );
+            );
 
-          // Log sync result using required Edge Function error handling pattern
-          if (syncResult.success === false) {
-            console.info(`apper_info: Got an error in this function: ${import.meta.env.VITE_CREATE_COMPANYHUB_CONTACT}. The response body is: ${JSON.stringify(syncResult)}.`);
-          } else {
-            console.info(`apper_info: Successfully synced contact to CompanyHub. Response: ${JSON.stringify(syncResult)}`);
+            // Log sync result using required Edge Function error handling pattern
+            if (syncResult.success === false) {
+              console.info(`apper_info: Got an error in this function: ${import.meta.env.VITE_CREATE_COMPANYHUB_CONTACT}. The response body is: ${JSON.stringify(syncResult)}.`);
+            } else {
+              console.info(`apper_info: Successfully synced contact to CompanyHub (science marks: ${contactData.science_marks_c}). Response: ${JSON.stringify(syncResult)}`);
+            }
+          } catch (syncError) {
+            // Log Edge Function invocation error
+            console.info(`apper_info: Got this error in this function: ${import.meta.env.VITE_CREATE_COMPANYHUB_CONTACT}. The error is: ${syncError.message}`);
           }
-        } catch (syncError) {
-          // Log Edge Function invocation error
-          console.info(`apper_info: Got this error in this function: ${import.meta.env.VITE_CREATE_COMPANYHUB_CONTACT}. The error is: ${syncError.message}`);
+        } else {
+          console.info(`apper_info: Contact not synced to CompanyHub - science marks (${contactData.science_marks_c || 0}) did not exceed threshold of 60`);
         }
 
         return localContact;

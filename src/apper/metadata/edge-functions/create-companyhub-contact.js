@@ -1,111 +1,90 @@
 import apper from 'https://cdn.apper.io/actions/apper-actions.js';
 
 apper.serve(async (req) => {
-  // Only allow POST requests
-  if (req.method !== 'POST') {
-    return new Response(JSON.stringify({
-      success: false,
-      message: 'Method not allowed. Only POST requests are supported.'
-    }), {
-      status: 400,
-      headers: { 'Content-Type': 'application/json' }
-    });
-  }
-
   try {
-    // Retrieve CompanyHub credentials from secrets
-    const companyHubProjectId = await apper.getSecret('COMPANYHUB_PROJECT_ID');
-    const companyHubPublicKey = await apper.getSecret('COMPANYHUB_PUBLIC_KEY');
-
-    // Validate secrets are available
-    if (!companyHubProjectId || !companyHubPublicKey) {
-      return new Response(JSON.stringify({
-        success: false,
-        message: 'CompanyHub credentials not configured. Please create COMPANYHUB_PROJECT_ID and COMPANYHUB_PUBLIC_KEY secrets.'
-      }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-
-    // Parse contact data from request body
+    // Parse request body
     const contactData = await req.json();
 
-    // Validate required contact fields
-    if (!contactData || typeof contactData !== 'object') {
+    // Validate required fields
+    if (!contactData.name_c || !contactData.email_c) {
       return new Response(JSON.stringify({
         success: false,
-        message: 'Invalid contact data provided. Expected JSON object with contact fields.'
+        message: 'Missing required fields: name_c and email_c are required'
       }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' }
       });
     }
 
-    // Prepare payload with only updateable fields for CompanyHub
-    const payload = {
-      records: [{
-        name_c: contactData.name_c || "",
-        email_c: contactData.email_c || "",
-        phone_c: contactData.phone_c || "",
-        company_c: contactData.company_c || "",
-        tags_c: contactData.tags_c || "",
-        notes_c: contactData.notes_c || "",
-        photo_url_c: contactData.photo_url_c || "",
-        science_marks_c: contactData.science_marks_c ? Number(contactData.science_marks_c) : "",
-        maths_marks_c: contactData.maths_marks_c ? Number(contactData.maths_marks_c) : "",
-        chemistry_marks_c: contactData.chemistry_marks_c ? Number(contactData.chemistry_marks_c) : ""
-      }]
-    };
-
-    // Use global apperClient to create contact in CompanyHub
-    // Note: apperClient is automatically available in Edge Functions context
-    const response = await apperClient.createRecord('contact_c', payload);
-
-    // Handle top-level failure
-    if (!response.success) {
+    // Retrieve CompanyHub API key from secrets
+    const apiKey = await apper.getSecret('COMPANYHUB_API_KEY');
+    
+    if (!apiKey) {
       return new Response(JSON.stringify({
         success: false,
-        message: response.message || 'Failed to create contact in CompanyHub'
+        message: 'CompanyHub API key not configured'
       }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' }
       });
     }
 
-    // Handle partial failures in results
-    if (response.results) {
-      const successful = response.results.filter(r => r.success);
-      const failed = response.results.filter(r => !r.success);
+    // Prepare CompanyHub contact payload
+    const companyHubPayload = {
+      name: contactData.name_c || '',
+      email: contactData.email_c || '',
+      phone: contactData.phone_c || '',
+      company: contactData.company_c || '',
+      tags: contactData.tags_c || '',
+      notes: contactData.notes_c || '',
+      photo_url: contactData.photo_url_c || '',
+      science_marks: contactData.science_marks_c ? Number(contactData.science_marks_c) : 0,
+      maths_marks: contactData.maths_marks_c ? Number(contactData.maths_marks_c) : 0,
+      chemistry_marks: contactData.chemistry_marks_c ? Number(contactData.chemistry_marks_c) : 0
+    };
 
-      if (failed.length > 0) {
-        const errorDetails = failed.map(f => f.message || 'Unknown error').join(', ');
-        return new Response(JSON.stringify({
-          success: false,
-          message: `Failed to create contact in CompanyHub: ${errorDetails}`
-        }), {
-          status: 500,
-          headers: { 'Content-Type': 'application/json' }
-        });
+    // Call CompanyHub API
+    const companyHubResponse = await fetch('https://api.companyhub.com/v1/contacts', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify(companyHubPayload)
+    });
+
+    // Check if CompanyHub API call was successful
+    if (!companyHubResponse.ok) {
+      const errorText = await companyHubResponse.text();
+      let errorMessage = 'CompanyHub API request failed';
+      
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorMessage = errorJson.message || errorJson.error || errorMessage;
+      } catch {
+        errorMessage = errorText || errorMessage;
       }
 
-      // Return success with created contact data
       return new Response(JSON.stringify({
-        success: true,
-        data: successful[0].data,
-        message: 'Contact successfully created in CompanyHub'
+        success: false,
+        message: `CompanyHub API error: ${errorMessage}`,
+        statusCode: companyHubResponse.status
       }), {
-        status: 200,
+        status: companyHubResponse.status === 401 ? 401 : 500,
         headers: { 'Content-Type': 'application/json' }
       });
     }
 
-    // Unexpected response format
+    // Parse CompanyHub response
+    const companyHubData = await companyHubResponse.json();
+
+    // Return success response
     return new Response(JSON.stringify({
-      success: false,
-      message: 'Unexpected response format from CompanyHub API'
+      success: true,
+      message: 'Contact successfully synced to CompanyHub',
+      data: companyHubData
     }), {
-      status: 500,
+      status: 200,
       headers: { 'Content-Type': 'application/json' }
     });
 
@@ -113,7 +92,7 @@ apper.serve(async (req) => {
     // Handle any unexpected errors
     return new Response(JSON.stringify({
       success: false,
-      message: error.message || 'Internal server error while creating contact in CompanyHub'
+      message: `Error syncing contact to CompanyHub: ${error.message}`
     }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
