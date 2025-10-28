@@ -5,7 +5,7 @@ export const contactsService = {
     try {
       const apperClient = getApperClient();
       
-      const response = await apperClient.fetchRecords('contact_c', {
+const response = await apperClient.fetchRecords('contact_c', {
         fields: [
           {"field": {"Name": "Id"}},
           {"field": {"Name": "name_c"}},
@@ -15,6 +15,9 @@ export const contactsService = {
           {"field": {"Name": "tags_c"}},
           {"field": {"Name": "notes_c"}},
           {"field": {"Name": "photo_url_c"}},
+          {"field": {"Name": "science_marks_c"}},
+          {"field": {"Name": "maths_marks_c"}},
+          {"field": {"Name": "chemistry_marks_c"}},
           {"field": {"Name": "CreatedOn"}},
           {"field": {"Name": "ModifiedOn"}}
         ]
@@ -36,7 +39,7 @@ export const contactsService = {
     try {
       const apperClient = getApperClient();
       
-      const response = await apperClient.getRecordById('contact_c', parseInt(id), {
+const response = await apperClient.getRecordById('contact_c', parseInt(id), {
         fields: [
           {"field": {"Name": "Id"}},
           {"field": {"Name": "name_c"}},
@@ -46,6 +49,9 @@ export const contactsService = {
           {"field": {"Name": "tags_c"}},
           {"field": {"Name": "notes_c"}},
           {"field": {"Name": "photo_url_c"}},
+          {"field": {"Name": "science_marks_c"}},
+          {"field": {"Name": "maths_marks_c"}},
+          {"field": {"Name": "chemistry_marks_c"}},
           {"field": {"Name": "CreatedOn"}},
           {"field": {"Name": "ModifiedOn"}}
         ]
@@ -72,7 +78,7 @@ export const contactsService = {
       const apperClient = getApperClient();
       
       // Only include Updateable fields
-      const payload = {
+const payload = {
         records: [{
           name_c: contactData.name_c || "",
           email_c: contactData.email_c || "",
@@ -80,7 +86,10 @@ export const contactsService = {
           company_c: contactData.company_c || "",
           tags_c: contactData.tags_c || "",
           notes_c: contactData.notes_c || "",
-          photo_url_c: contactData.photo_url_c || ""
+          photo_url_c: contactData.photo_url_c || "",
+          science_marks_c: contactData.science_marks_c ? Number(contactData.science_marks_c) : "",
+          maths_marks_c: contactData.maths_marks_c ? Number(contactData.maths_marks_c) : "",
+          chemistry_marks_c: contactData.chemistry_marks_c ? Number(contactData.chemistry_marks_c) : ""
         }]
       };
 
@@ -115,7 +124,7 @@ export const contactsService = {
       const apperClient = getApperClient();
       
       // Only include Updateable fields + Id
-      const payload = {
+const payload = {
         records: [{
           Id: parseInt(id),
           name_c: contactData.name_c || "",
@@ -124,7 +133,10 @@ export const contactsService = {
           company_c: contactData.company_c || "",
           tags_c: contactData.tags_c || "",
           notes_c: contactData.notes_c || "",
-          photo_url_c: contactData.photo_url_c || ""
+          photo_url_c: contactData.photo_url_c || "",
+          science_marks_c: contactData.science_marks_c ? Number(contactData.science_marks_c) : "",
+          maths_marks_c: contactData.maths_marks_c ? Number(contactData.maths_marks_c) : "",
+          chemistry_marks_c: contactData.chemistry_marks_c ? Number(contactData.chemistry_marks_c) : ""
         }]
       };
 
